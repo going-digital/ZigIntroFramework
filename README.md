@@ -5,6 +5,10 @@ A pure Zig (+GLSL) framework for sizecoding intros, targetting PC, 32 bit.
 ## Project status
 Visuals now working, but there is only a token audio synth.
 
+## Build instructions
+
+In build.bat, fix up LIB to point to your Visual Studio 32 bit libraries. Then run the script. The output is in the bin directory.
+
 ## Credits
 
 * Compression/Linker: [Crinkler](https://github.com/runestubbe/Crinkler)

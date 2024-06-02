@@ -1,3 +1,12 @@
+@echo off
+::: Clean up build files
+del /q tmp\*.*
+del /q bin\*.*
+del /q src\packed.frag
+
+::: Pack shader
+tools\shader_minifier -o src\packed.frag -v --format text src\fragment.frag
+
 ::: Build zig
 setlocal
 cd tmp
