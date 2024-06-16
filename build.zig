@@ -11,14 +11,14 @@ pub fn build(b: *std.Build) void {
 
     // Pack shader
     const minify = b.addSystemCommand(&.{"tools\\shader_minifier"});
-    _ = minify.addArgs(&.{ "-v", "--format", "text", "-o" });
+    minify.addArgs(&.{ "-v", "--format", "text", "-o" });
     // TODO: Writing to the src directory it nasty. Find a way to move packed.frag to the cache directory, but still allow main.zig to include it.
-    _ = minify.addFileArg(b.path("src/packed.frag"));
-    _ = minify.addFileArg(b.path("src/fragment.frag"));
+    minify.addFileArg(b.path("src/packed.frag"));
+    minify.addFileArg(b.path("src/fragment.frag"));
 
     // Build zig
     const build_obj = b.addObject(.{
-        .name = "test",
+        .name = "main",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .single_threaded = true,
@@ -27,28 +27,25 @@ pub fn build(b: *std.Build) void {
     build_obj.step.dependOn(&minify.step);
 
     // Link
-    // TODO: This step fails. Plenty to fix.
     const link = b.addSystemCommand(&.{"tools\\crinkler"});
-    _ = link.addArg("/out:");
-    _ = link.addArg("/out:bin\\test.exe"); // TODO: Move to build directory correctly
-    _ = link.addArg("/subsystem:windows");
-    _ = link.addArg("/print:imports");
-    _ = link.addArg("/print:labels");
-    _ = link.addArg("/range:opengl32");
-    _ = link.addArg("/compmode:slow");
-    _ = link.addArg("/ordertries:1000");
-    _ = link.addArg("tmp\\main.obj"); // TODO: Reference cache files correctly
-    _ = link.addArg("kernel32.lib");
-    _ = link.addArg("user32.lib");
-    _ = link.addArg("gdi32.lib");
-    _ = link.addArg("opengl32.lib");
-    _ = link.addArg("winmm.lib");
-    _ = link.addArg("/report:bin\\test.html"); // TODO: Reference output directory correctly
-    link.step.dependOn(&build_obj.step);
-
+    _ = link.addPrefixedOutputFileArg("/out:", "test.exe");
+    link.addArg("/subsystem:windows");
+    link.addArg("/print:imports");
+    link.addArg("/print:labels");
+    link.addArg("/range:opengl32");
+    link.addArg("/compmode:slow");
+    link.addArg("/ordertries:1000");
+    link.addPrefixedDirectoryArg("/libpath:", b.path("lib"));
+    link.addArtifactArg(build_obj);
+    link.addArg("kernel32.lib");
+    link.addArg("user32.lib");
+    link.addArg("gdi32.lib");
+    link.addArg("opengl32.lib");
+    link.addArg("winmm.lib");
+    _ = link.addPrefixedOutputFileArg("/report:", "test.html");
     b.getInstallStep().dependOn(&link.step);
 
-    const run_cmd = b.addSystemCommand(&.{"bin\\test.exe"}); // TODO: Reference output directory correctly
+    const run_cmd = b.addSystemCommand(&.{"bin\\test.exe"});
     const run_step = b.step("run", "Run the intro");
     run_step.dependOn(&run_cmd.step);
 }

@@ -7,7 +7,7 @@ Visuals now working, but there is only a token audio synth.
 
 ## Build instructions
 
-In build.bat, fix up LIB to point to your Visual Studio 32 bit libraries. Then run the script. The output is in the bin directory.
+Use zig version 0.13.0. `zig build` to compile.
 
 ## Credits
 
