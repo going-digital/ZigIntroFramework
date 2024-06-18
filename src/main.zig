@@ -17,6 +17,10 @@ const frag_prog: [*]const []const u8 linksection(".shader") = &.{
 
 export fn WinMainCRTStartup() callconv(std.os.windows.WINAPI) noreturn {
     @setAlignStack(16);
+    main();
+}
+
+pub inline fn main() void {
     // Set display mode
     var screenSettings: gdi.DEVMODEA = .{
         .dmDeviceName = [_]u8{0} ** 32,
