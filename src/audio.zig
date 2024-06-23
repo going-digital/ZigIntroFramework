@@ -1,5 +1,5 @@
 const std = @import("std");
-const win32 = @import("zigwin32//win32.zig");
+const win32 = @import("win32");
 const media = win32.media;
 const audio = media.audio;
 const threading = win32.system.threading;

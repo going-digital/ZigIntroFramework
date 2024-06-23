@@ -1,5 +1,5 @@
 const std = @import("std");
-const getProcAddress = @import("zigwin32//win32.zig").graphics.open_gl.wglGetProcAddress;
+const getProcAddress = @import("win32").graphics.open_gl.wglGetProcAddress;
 
 // Implement OpenGL calls as a wrapped glGetProcAddress
 

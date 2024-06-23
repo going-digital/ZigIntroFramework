@@ -1,3 +1,0 @@
-[submodule "src/zigwin32"]
-	path = src/zigwin32
-	url = https://github.com/marlersoft/zigwin32

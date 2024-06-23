@@ -7,7 +7,14 @@ Visuals now working, but there is only a token audio synth.
 
 ## Build instructions
 
-Use zig version 0.13.0. `zig build` to compile.
+Use zig version 0.13.0.
+
+* `zig build` to build debug version.
+* `zig build --release=small` to build release version
+* `zig build clean` to clean up.
+* `zig build run` to run debug version.
+* `zig build --release=small run` to run release version
+
 
 ## Credits
 

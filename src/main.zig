@@ -1,5 +1,5 @@
 const std = @import("std");
-const win32 = @import("zigwin32//win32.zig");
+const win32 = @import("win32");
 const audio = @import("audio.zig");
 const threading = win32.system.threading;
 const gdi = win32.graphics.gdi;
@@ -15,12 +15,12 @@ const frag_prog: [*]const []const u8 linksection(".shader") = &.{
     @embedFile("packed.frag"),
 };
 
-export fn WinMainCRTStartup() callconv(std.os.windows.WINAPI) noreturn {
+pub export fn WinMainCRTStartup() callconv(std.os.windows.WINAPI) noreturn {
     @setAlignStack(16);
     main();
 }
 
-pub inline fn main() void {
+inline fn main() void {
     // Set display mode
     var screenSettings: gdi.DEVMODEA = .{
         .dmDeviceName = [_]u8{0} ** 32,

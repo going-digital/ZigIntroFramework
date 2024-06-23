@@ -19,8 +19,12 @@ pub fn build(b: *std.Build) void {
     minify.addFileArg(b.path("src/fragment.frag"));
 
     // Build zig
-    if (optimize == .ReleaseSmall) {
-        // Use Crinkler for the small build
+    const zigwin32_module = b.dependency("win32", .{}).module("zigwin32");
+
+    if (b.release_mode == .small) {
+        // Build --release=small
+        //
+        // This links with Crinkler
 
         const build_obj = b.addObject(.{
             .name = "main",
@@ -29,26 +33,40 @@ pub fn build(b: *std.Build) void {
             .single_threaded = true,
             .optimize = .ReleaseSmall,
         });
+        build_obj.root_module.addImport("win32", zigwin32_module);
         build_obj.step.dependOn(&minify.step);
+
         // Link
+        // FIXME: This doesn't appear to execute with a
+        // zig build --release=small
         const link = b.addSystemCommand(&.{"tools\\crinkler"});
-        _ = link.addPrefixedOutputFileArg("/out:", "test.exe");
-        link.addArg("/subsystem:windows");
-        link.addArg("/print:imports");
-        link.addArg("/print:labels");
-        link.addArg("/range:opengl32");
-        link.addArg("/compmode:slow");
-        link.addArg("/ordertries:1000");
+        const exe = link.addPrefixedOutputFileArg("/out:", "test.exe");
+        link.addArgs(&.{
+            "/subsystem:windows",
+            "/print:imports",
+            "/print:labels",
+            "/range:opengl32",
+            "/compmode:slow",
+            "/ordertries:1000",
+        });
         link.addPrefixedDirectoryArg("/libpath:", b.path("lib"));
         link.addArtifactArg(build_obj);
-        link.addArg("kernel32.lib");
-        link.addArg("user32.lib");
-        link.addArg("gdi32.lib");
-        link.addArg("opengl32.lib");
-        link.addArg("winmm.lib");
-        _ = link.addPrefixedOutputFileArg("/report:", "test.html");
-        b.getInstallStep().dependOn(&link.step);
+        link.addArgs(&.{
+            "kernel32.lib",
+            "user32.lib",
+            "gdi32.lib",
+            "opengl32.lib",
+            "winmm.lib",
+        });
+        const log = link.addPrefixedOutputFileArg("/report:", "test.html");
+        const exe_install = b.addInstallFile(exe, "release.exe");
+        const log_install = b.addInstallFile(log, "release_report.html");
+        b.getInstallStep().dependOn(&exe_install.step);
+        b.getInstallStep().dependOn(&log_install.step);
+        // FIXME: Generate paths for crinkler output
+        // FIXME: Copy output to install location
     } else {
+        // Build debug
         const build_exe = b.addExecutable(.{
             .name = "main",
             .root_source_file = b.path("src/main.zig"),
@@ -56,10 +74,19 @@ pub fn build(b: *std.Build) void {
             .single_threaded = true,
             .optimize = optimize,
         });
+        build_exe.root_module.addImport("win32", zigwin32_module);
         build_exe.step.dependOn(&minify.step);
         b.installArtifact(build_exe);
     }
 
+    // Build clean
+    const clean_step = b.step("clean", "Clean up");
+    clean_step.dependOn(&b.addRemoveDirTree(b.install_path).step);
+    if (@import("builtin").os.tag != .windows) {
+        clean_step.dependOn(&b.addRemoveDirTree(b.pathFromRoot("zig-cache")).step);
+    }
+
+    // Build run
     const run_cmd = b.addSystemCommand(&.{"bin\\test.exe"});
     const run_step = b.step("run", "Run the intro");
     run_step.dependOn(&run_cmd.step);
