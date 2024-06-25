@@ -3,6 +3,7 @@ const win32 = @import("win32");
 const media = win32.media;
 const audio = media.audio;
 const threading = win32.system.threading;
+const tinymath = @import("tinymath.zig");
 
 const sampleType = i16; // Could be i16 or f32
 const SAMPLE_RATE = 44100;
@@ -79,34 +80,13 @@ pub fn get_position() u32 {
 }
 
 fn audio_render() callconv(std.os.windows.WINAPI) void {
-    const twopi = 6.283184;
+    const twopi = tinymath.twopi;
     const tone_freq = 1000;
     // Placeholder soundroutine - render a tone
     for (0..MAX_SAMPLES) |i| {
         const value: i16 = @intFromFloat(4095 *
-            sin(@as(f32, @floatFromInt(i)) * twopi * tone_freq / SAMPLE_RATE));
+            tinymath.sinf(@as(f32, @floatFromInt(i)) * twopi * tone_freq / SAMPLE_RATE));
         lpSoundBuffer[CHANNELS * i] = value;
         lpSoundBuffer[CHANNELS * i + 1] = value;
-    }
-}
-
-const builtin = @import("builtin");
-
-fn sin(a: f32) f32 {
-    if (std.Target.x86.featureSetHas(builtin.cpu.features, .x87)) {
-        // https://ziglang.org/documentation/master/#Assembly
-        // https://stackoverflow.com/questions/78391454/using-fsin-through-inline-assembly
-        // https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
-        // https://stackoverflow.com/tags/inline-assembly/info
-        var result: f32 = undefined;
-        asm volatile (
-            \\fsin
-            : [ret] "={st}" (result),
-            : [a] "{st}" (a),
-        );
-        return result;
-    } else {
-        // Implemented in MUSL on x86_64
-        return @sin(a);
     }
 }
