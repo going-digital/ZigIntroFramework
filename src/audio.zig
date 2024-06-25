@@ -85,7 +85,7 @@ fn audio_render() callconv(std.os.windows.WINAPI) void {
     // Placeholder soundroutine - render a tone
     for (0..MAX_SAMPLES) |i| {
         const value: i16 = @intFromFloat(4095 *
-            tinymath.sinf(@as(f32, @floatFromInt(i)) * twopi * tone_freq / SAMPLE_RATE));
+            tinymath.sin(@as(f32, @floatFromInt(i)) * twopi * tone_freq / SAMPLE_RATE));
         lpSoundBuffer[CHANNELS * i] = value;
         lpSoundBuffer[CHANNELS * i + 1] = value;
     }
