@@ -49,25 +49,25 @@ pub fn exp2(a: f32) f32 {
         asm volatile (
             \\fld %st           // a, a
             \\frndint           // floor(a), a
-            \\fsubr %st(1),%st  // a, frac(a)
-            \\fxch %st(1)       // frac(a), a
-            \\f2xm1             // exp2(frac(a))-1, a
-            \\fld1              // 1, exp2(frac(a))-1, a
-            \\faddp             // exp2(frac(a)), a
-            \\fscale            // exp2(frac(a)) * exp2(floor(a)) = exp2(a)
-            \\fstp %st(1)
+            \\fxch              // a, floor(a)
+            \\fsub %st(1),%st   // frac(a), floor(a)
+            \\f2xm1             // exp2(frac(a))-1, floor(a)
+            \\fld1              // 1, exp2(frac(a))-1, floor(a)
+            \\faddp             // exp2(frac(a)), floor(a)
+            \\fscale            // exp2(frac(a)) * exp2(floor(a)) = exp2(a), floor(a)
+            \\fstp %st(1)       // exp2(a)
             : [ret] "={st}" (result),
             : [a] "{st}" (a),
         );
-        return a;
+        return result;
     } else {
-        // Revert to standard libary
+        // Revert to standard library
         return @exp2(a);
     }
 }
 
 test "exp2" {
-    try std.testing.expectApproxEqRel(exp2(0), @as(f32, @exp2(@as(f32, 0))), 0.0001);
-    try std.testing.expectApproxEqRel(exp2(123), @as(f32, @exp2(@as(f32, 123))), 0.0001);
-    try std.testing.expectApproxEqRel(exp2(0.123), @as(f32, @exp2(@as(f32, 0.123))), 0.0001);
+    try std.testing.expectApproxEqRel(@exp2(@as(f32, 0)), exp2(0), 1e-6);
+    try std.testing.expectApproxEqRel(@exp2(@as(f32, 123)), exp2(123), 1e-6);
+    try std.testing.expectApproxEqRel(@exp2(@as(f32, 0.123)), exp2(0.123), 1e-6);
 }
