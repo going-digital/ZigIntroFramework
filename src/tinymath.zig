@@ -49,8 +49,8 @@ pub fn exp2(a: f32) f32 {
         asm volatile (
             \\fld %st           // a, a
             \\frndint           // floor(a), a
-            \\fsubr %st(1),%st  // a, frac(a)
-            \\fxch %st(1)       // frac(a), a
+            \\fsubr %st,%st(1)  // floor(a), frac(a)
+            \\fxch              // frac(a), a
             \\f2xm1             // exp2(frac(a))-1, a
             \\fld1              // 1, exp2(frac(a))-1, a
             \\faddp             // exp2(frac(a)), a
